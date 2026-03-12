@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>SECURE TERMINAL</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root { --g: #00ff41; --bg: #000; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { background: var(--bg); color: var(--g); margin: 0; padding: 0; height: 100vh; width: 100vw; overflow: hidden; font-family: 'Consolas', monospace; }
+        .app { display: flex; flex-direction: column; height: 100vh; padding: 20px; max-width: 500px; margin: 0 auto; }
+        .monitor { border: 2px solid var(--g); padding: 15px; margin-bottom: 20px; background: rgba(0,255,65,0.02); position: relative; height: 100px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        #out { font-size: 24px; letter-spacing: 3px; font-weight: bold; }
+        .keyboard { display: flex; flex-direction: column; gap: 6px; flex-grow: 1; }
+        .row { display: flex; justify-content: center; gap: 4px; width: 100%; }
+        .key { background: #111; border: 1px solid var(--g); color: var(--g); flex: 1; height: 45px; display: flex; align-items: center; justify-content: center; font-size: 14px; border-radius: 4px; font-weight: bold; }
+        .key:active { background: var(--g); color: #000; }
+        .k-wide { flex: 1.5; background: #1a1a1a; }
+        .k-exe { flex: 3; border-color: #3b82f6; color: #3b82f6; height: 55px; margin-top: 5px; font-size: 18px; }
+        #final-screen { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; }
+        .photo-frame { width: 300px; height: 300px; border: 3px solid var(--g); border-radius: 50%; overflow: hidden; position: relative; box-shadow: 0 0 40px rgba(0,255,65,0.3); transition: transform 3s cubic-bezier(0.15, 0, 0.2, 1); background: #111; }
+        .photo-frame img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+        #run-btn { display: none; width: 100%; padding: 25px; border: 2px solid var(--g); background: rgba(0,255,65,0.1); color: var(--g); font-size: 24px; font-weight: bold; margin: auto 0; }
+        #status-msg { display: none; text-align: center; font-size: 20px; margin: auto 0; animation: blink 0.5s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+    </style>
+</head>
+<body>
+
+<div class="app" id="auth-ui">
+    <div class="monitor"><div id="out">_</div></div>
+    <div class="keyboard">
+        <div class="row"><div class="key" onclick="v('1')">1</div><div class="key" onclick="v('2')">2</div><div class="key" onclick="v('3')">3</div><div class="key" onclick="v('4')">4</div><div class="key" onclick="v('5')">5</div><div class="key" onclick="v('6')">6</div><div class="key" onclick="v('7')">7</div><div class="key" onclick="v('8')">8</div><div class="key" onclick="v('9')">9</div><div class="key" onclick="v('0')">0</div></div>
+        <div class="row"><div class="key" onclick="v('Q')">Q</div><div class="key" onclick="v('W')">W</div><div class="key" onclick="v('E')">E</div><div class="key" onclick="v('R')">R</div><div class="key" onclick="v('T')">T</div><div class="key" onclick="v('Y')">Y</div><div class="key" onclick="v('U')">U</div><div class="key" onclick="v('I')">I</div><div class="key" onclick="v('O')">O</div><div class="key" onclick="v('P')">P</div></div>
+        <div class="row"><div class="key" onclick="v('A')">A</div><div class="key" onclick="v('S')">S</div><div class="key" onclick="v('D')">D</div><div class="key" onclick="v('F')">F</div><div class="key" onclick="v('G')">G</div><div class="key" onclick="v('H')">H</div><div class="key" onclick="v('J')">J</div><div class="key" onclick="v('K')">K</div><div class="key" onclick="v('L')">L</div></div>
+        <div class="row"><div class="key k-wide" onclick="clr()">CLR</div><div class="key" onclick="v('Z')">Z</div><div class="key" onclick="v('X')">X</div><div class="key" onclick="v('C')">C</div><div class="key" onclick="v('V')">V</div><div class="key" onclick="v('B')">B</div><div class="key" onclick="v('N')">N</div><div class="key" onclick="v('M')">M</div><div class="key k-wide" onclick="v('-')">-</div></div>
+        <div class="row"><div class="key k-exe" onclick="check()">EXECUTE_LOGIN</div></div>
+    </div>
+    <div id="status-msg">ACCESS_GRANTED... DECRYPTING...</div>
+    <button id="run-btn" onclick="openRun()">[ RUN_CORE ]</button>
+</div>
+
+<div class="app" id="final-screen">
+    <div style="font-size: 18px; margin-bottom: 20px; letter-spacing: 2px;">FILE: ZULF_PROCESS.EXE</div>
+    <div class="photo-frame" id="spinner" onclick="spin()">
+        <img src="https://i.postimg.cc/9MpNFWVx/zul-f.jpg" alt="target">
+    </div>
+    <div style="margin-top: 40px; color: #555; font-size: 12px;">TOUCH_TO_ROTATE_SYSTEM</div>
+</div>
+
+<script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+    let input = "";
+    let rot = 0;
+
+    // Скрытая проверка пароля. Пароль: JFDKDSJK
+    const _0x1a2b = ["\x4A\x46\x44\x4B\x44\x53\x4A\x4B"]; 
+
+    function v(c) {
+        if(input.length < 15) input += c;
+        document.getElementById('out').innerText = input + "_";
+        tg.HapticFeedback.impact('light');
+    }
+
+    function clr() { input = ""; document.getElementById('out').innerText = "_"; document.getElementById('out').style.color = "var(--g)"; }
+
+    function check() {
+        // Проверка через зашифрованное значение
+        if(input === _0x1a2b[0]) {
+            tg.HapticFeedback.notificationOccurred('success');
+            document.querySelector('.keyboard').style.display = 'none';
+            document.querySelector('.monitor').style.display = 'none';
+            document.getElementById('status-msg').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('status-msg').style.display = 'none';
+                document.getElementById('run-btn').style.display = 'block';
+            }, 1500);
+        } else {
+            tg.HapticFeedback.notificationOccurred('error');
+            document.getElementById('out').innerText = "DENIED";
+            document.getElementById('out').style.color = "red";
+            setTimeout(clr, 800);
+        }
+    }
+
+    function openRun() {
+        document.getElementById('auth-ui').style.display = 'none';
+        document.getElementById('final-screen').style.display = 'flex';
+    }
+
+    function spin() {
+        tg.HapticFeedback.impact('heavy');
+        const s = document.getElementById('spinner');
+        rot += 1440;
+        s.style.transform = `rotate(${rot}deg)`;
+    }
+</script>
+</body>
+</html>
